@@ -107,8 +107,9 @@ namespace detail {
   inline typename std::enable_if<
     has_tostring<T, std::basic_string<Char, Traits>>::value == 0, void
   >::type
-    try_format(std::basic_ostream<Char, Traits> &o, T &&t) {
-    throw "error!";
+  try_format(std::basic_ostream<Char, Traits> &o, T &&t, const char *fmt = 0) {
+    static_assert(has_tostring<T, std::basic_string<Char, Traits>>::value,
+                  "no tostring function found");
   }
 
   template<typename Char, typename Traits, typename T>
@@ -125,14 +126,6 @@ namespace detail {
   >::type
   try_format(std::basic_ostream<Char, Traits> &o, T &&t) {
     o << tostring_<std::basic_string<Char, Traits>>(t, "");
-  }
-
-  template<typename Char, typename Traits, typename T>
-  inline typename std::enable_if<
-    has_tostring<T, std::basic_string<Char, Traits>>::value == 0, void
-  >::type
-  try_format(std::basic_ostream<Char, Traits> &o, T &&t, const char *fmt) {
-    throw "error!";
   }
 
   template<typename Char, typename Traits, typename T>
