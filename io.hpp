@@ -38,6 +38,12 @@ class has_tostring {
       tostring<String>(std::declval<U>(), std::declval<const char*>()),
       tostring<String>(std::declval<U>()),
       int()) {
+    static_assert(std::is_convertible<String, decltype(
+      tostring<String>(std::declval<U>(), std::declval<const char*>())
+    )>::value, "unexpected return type for tostring");
+    static_assert(std::is_convertible<String, decltype(
+      tostring<String>(std::declval<U>())
+    )>::value, "unexpected return type for tostring");
     return 4 | 2 | 1;
   }
   template<typename U>
@@ -45,6 +51,12 @@ class has_tostring {
       tostring(std::declval<U>(), std::declval<const char*>()),
       tostring(std::declval<U>()),
       int()) {
+    static_assert(std::is_convertible<String, decltype(
+      tostring(std::declval<U>(), std::declval<const char*>())
+    )>::value, "unexpected return type for tostring");
+    static_assert(std::is_convertible<String, decltype(
+      tostring(std::declval<U>())
+    )>::value, "unexpected return type for tostring");
     return 2 | 1;
   }
 
@@ -52,25 +64,37 @@ class has_tostring {
   static constexpr auto has_tostring_(int, int, int, int, ...) -> decltype(
       tostring<String>(std::declval<U>(), std::declval<const char*>()),
       int()) {
+    static_assert(std::is_convertible<String, decltype(
+      tostring<String>(std::declval<U>(), std::declval<const char*>())
+    )>::value, "unexpected return type for tostring");
     return 4 | 2;
   }
   template<typename U>
   static constexpr auto has_tostring_(int, int, int, ...) -> decltype(
       tostring(std::declval<U>(), std::declval<const char*>()),
       int()) {
+    static_assert(std::is_convertible<String, decltype(
+      tostring(std::declval<U>(), std::declval<const char*>())
+    )>::value, "unexpected return type for tostring");
     return 2;
   }
 
   template<typename U>
   static constexpr auto has_tostring_(int, int, ...) -> decltype(
-    String(tostring<String>(std::declval<U>())),
+      tostring<String>(std::declval<U>()),
       int()) {
+    static_assert(std::is_convertible<String, decltype(
+      tostring<String>(std::declval<U>())
+    )>::value, "unexpected return type for tostring");
     return 4 | 1;
   }
   template<typename U>
   static constexpr auto has_tostring_(int, ...) -> decltype(
-    String(tostring(std::declval<U>())),
+      tostring(std::declval<U>()),
       int()) {
+    static_assert(std::is_convertible<String, decltype(
+      tostring(std::declval<U>())
+    )>::value, "unexpected return type for tostring");
     return 1;
   }
 
