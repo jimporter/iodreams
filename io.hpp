@@ -103,6 +103,10 @@ class has_tostring {
     return 0;
   }
 public:
+  // value is a bitfield describing what kind of tostring function we have:
+  //   4 = tostring accepts a template for the return type
+  //   2 = tostring accepts a format string
+  //   1 = tostring accepts no format string
   enum { value = has_tostring_<T>(0, 0, 0, 0, 0, 0) };
 };
 
