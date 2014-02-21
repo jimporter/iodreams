@@ -28,124 +28,177 @@ public:
   std::vector<T> strings_;
   std::vector<size_t> placeholders_;
 };
-typedef basic_formatter<char> formatter;
+typedef basic_formatter<std::string> formatter;
+typedef basic_formatter<std::wstring> wformatter;
 
-template<typename T, typename String = std::string>
+template<typename T, typename String, bool Formatted>
 class has_tostring {
-  // It might be possible to simplify this, but it works.
   template<typename U>
-  static constexpr auto has_tostring_(int, int, int, int, int, int) -> decltype(
-      String(tostring<String>(std::declval<U>(), std::declval<const char*>())),
-      String(tostring<String>(std::declval<U>())),
-      int()) {
-    return 4 | 2 | 1;
-  }
-  template<typename U>
-  static constexpr auto has_tostring_(int, int, int, int, int, ...) -> decltype(
-      String(tostring(std::declval<U>(), std::declval<const char*>())),
-      String(tostring(std::declval<U>())),
-      int()) {
-    return 2 | 1;
-  }
-
-  template<typename U>
-  static constexpr auto has_tostring_(int, int, int, int, ...) -> decltype(
-      String(tostring<String>(std::declval<U>(), std::declval<const char*>())),
-      int()) {
-    return 4 | 2;
-  }
-  template<typename U>
-  static constexpr auto has_tostring_(int, int, int, ...) -> decltype(
-      String(tostring(std::declval<U>(), std::declval<const char*>())),
+  static constexpr auto check_args_(int, int) -> decltype(
+      tostring<String>(std::declval<U>()),
       int()) {
     return 2;
   }
-
   template<typename U>
-  static constexpr auto has_tostring_(int, int, ...) -> decltype(
-      String(tostring<String>(std::declval<U>())),
-      int()) {
-    return 4 | 1;
-  }
-  template<typename U>
-  static constexpr auto has_tostring_(int, ...) -> decltype(
-      String(tostring(std::declval<U>())),
+  static constexpr auto check_args_(int, ...) -> decltype(
+      tostring(std::declval<U>()),
       int()) {
     return 1;
   }
-
   template<typename U>
-  static constexpr auto has_tostring_(...) -> int {
+  static constexpr auto check_args_(...) -> int {
     return 0;
   }
+
+  template<typename U>
+  static auto return_type_(int, int) -> decltype(
+    tostring<String>(std::declval<U>())
+  );
+  template<typename U>
+  static auto return_type_(int, ...) -> decltype(
+    tostring(std::declval<U>())
+  );
+  template<typename U>
+  static auto return_type_(...) -> void;
 public:
-  // value is a bitfield describing what kind of tostring function we have:
-  //   4 = tostring accepts a template for the return type
-  //   2 = tostring accepts a format string
-  //   1 = tostring accepts no format string
-  enum { value = has_tostring_<T>(0, 0, 0, 0, 0, 0) };
+  static const bool formatted = Formatted;
+  static const bool value = check_args_<T>(0, 0);
+  static const bool templated = check_args_<T>(0, 0) == 2;
+
+  using string_type = String;
+  using return_type = decltype(return_type_<T>(0, 0));
+  static const bool compatible = std::is_convertible<
+    string_type, return_type>::value;
+};
+
+template<typename T, typename String>
+class has_tostring<T, String, true> {
+  template<typename U>
+  static constexpr auto check_args_(int, int) -> decltype(
+      tostring<String>(std::declval<U>(), std::declval<const char*>()),
+      int()) {
+    return 2;
+  }
+  template<typename U>
+  static constexpr auto check_args_(int, ...) -> decltype(
+      tostring(std::declval<U>(), std::declval<const char*>()),
+      int()) {
+    return 1;
+  }
+  template<typename U>
+  static constexpr auto check_args_(...) -> int {
+    return 0;
+  }
+
+  template<typename U>
+  static auto return_type_(int, int) -> decltype(
+    tostring<String>(std::declval<U>(), std::declval<const char*>())
+  );
+  template<typename U>
+  static auto return_type_(int, ...) -> decltype(
+    tostring(std::declval<U>(), std::declval<const char*>())
+  );
+  template<typename U>
+  static auto return_type_(...) -> void;
+public:
+  static const bool formatted = true;
+  static const bool value = check_args_<T>(0, 0);
+  static const bool templated = check_args_<T>(0, 0) == 2;
+
+  using input_type = String;
+  using return_type = decltype(return_type_<T>(0, 0));
+  static const bool compatible = std::is_convertible<
+    input_type, return_type>::value;
 };
 
 namespace detail {
   // First, some helpers to call tostring whether or not it takes a template to
   // define the return type.
   template<typename String, typename T>
-  inline auto tostring_(T &&t) -> typename std::enable_if<
-    (has_tostring<T, String>::value & 4) == 0,
-    decltype(tostring( std::declval<T>() ))
+  inline auto call_tostring(T &&t) -> typename std::enable_if<
+    !has_tostring<T, String, false>::templated,
+    typename has_tostring<T, String, false>::return_type
   >::type {
+    static_assert(has_tostring<T, String, false>::compatible,
+                  "tostring function has incompatible return type");
     return tostring(std::forward<T>(t));
   }
 
   template<typename String, typename T>
-  inline auto tostring_(T &&t) -> typename std::enable_if<
-    has_tostring<T, String>::value & 4,
-    decltype(tostring<String>( std::declval<T>() ))
+  inline auto call_tostring(T &&t) -> typename std::enable_if<
+    has_tostring<T, String, false>::templated,
+    typename has_tostring<T, String, false>::return_type
   >::type {
+    static_assert(has_tostring<T, String, false>::compatible,
+                  "tostring function has incompatible return type");
     return tostring<String>(std::forward<T>(t));
+  }
+
+  template<typename String, typename T>
+  inline auto call_tostring(T &&t, const char *fmt) -> typename std::enable_if<
+    !has_tostring<T, String, false>::templated,
+    typename has_tostring<T, String, false>::return_type
+  >::type {
+    static_assert(has_tostring<T, String, false>::compatible,
+                  "tostring function has incompatible return type");
+    return tostring(std::forward<T>(t), fmt);
+  }
+
+  template<typename String, typename T>
+  inline auto call_tostring(T &&t, const char *fmt) -> typename std::enable_if<
+    has_tostring<T, String, false>::templated,
+    typename has_tostring<T, String, false>::return_type
+  >::type {
+    static_assert(has_tostring<T, String, false>::compatible,
+                  "tostring function has incompatible return type");
+    return tostring<String>(std::forward<T>(t), fmt);
   }
 
   // Next, some helpers to delegate to the proper tostring based on whether
   // format args were provided and whether tostring accepts them.
   template<typename Char, typename Traits, typename T>
   inline typename std::enable_if<
-    has_tostring<T, std::basic_string<Char, Traits>>::value == 0, void
+    !has_tostring<T, std::basic_string<Char, Traits>, false>::value &&
+    !has_tostring<T, std::basic_string<Char, Traits>, true >::value, void
   >::type
   try_format(std::basic_ostream<Char, Traits> &o, T &&t, const char *fmt = 0) {
-    static_assert(has_tostring<T, std::basic_string<Char, Traits>>::value,
-                  "no valid tostring function found");
+    static_assert(
+      !has_tostring<T, std::basic_string<Char, Traits>, false>::value &&
+      !has_tostring<T, std::basic_string<Char, Traits>, true >::value,
+      "no tostring function found"
+    );
   }
 
   template<typename Char, typename Traits, typename T>
   inline typename std::enable_if<
-    has_tostring<T, std::basic_string<Char, Traits>>::value & 1, void
+    has_tostring<T, std::basic_string<Char, Traits>, false>::value, void
   >::type
   try_format(std::basic_ostream<Char, Traits> &o, T &&t) {
-    o << tostring_<std::basic_string<Char, Traits>>(t);
+    o << call_tostring<std::basic_string<Char, Traits>>(t);
   }
-
   template<typename Char, typename Traits, typename T>
   inline typename std::enable_if<
-    (has_tostring<T, std::basic_string<Char, Traits>>::value & 3) == 2, void
+    !has_tostring<T, std::basic_string<Char, Traits>, false>::value &&
+     has_tostring<T, std::basic_string<Char, Traits>, true >::value, void
   >::type
   try_format(std::basic_ostream<Char, Traits> &o, T &&t) {
-    o << tostring_<std::basic_string<Char, Traits>>(t, "");
+    o << call_tostring<std::basic_string<Char, Traits>>(t, "");
   }
 
   template<typename Char, typename Traits, typename T>
   inline typename std::enable_if<
-    (has_tostring<T, std::basic_string<Char, Traits>>::value & 3) == 1, void
+    has_tostring<T, std::basic_string<Char, Traits>, true>::value, void
   >::type
   try_format(std::basic_ostream<Char, Traits> &o, T &&t, const char *fmt) {
-    o << tostring_<std::basic_string<Char, Traits>>(t);
+    o << call_tostring<std::basic_string<Char, Traits>>(t, fmt);
   }
-
   template<typename Char, typename Traits, typename T>
   inline typename std::enable_if<
-    has_tostring<T, std::basic_string<Char, Traits>>::value & 2, void
+    !has_tostring<T, std::basic_string<Char, Traits>, true >::value &&
+     has_tostring<T, std::basic_string<Char, Traits>, false>::value, void
   >::type
   try_format(std::basic_ostream<Char, Traits> &o, T &&t, const char *fmt) {
-    o << tostring_<std::basic_string<Char, Traits>>(t, fmt);
+    o << call_tostring<std::basic_string<Char, Traits>>(t);
   }
 
   // Finally, some helpers to return a formatted version of the i'th argument
@@ -181,8 +234,6 @@ namespace detail {
   }
 }
 
-// Not sure why I need this overload... you'd think the next one would be
-// deduceable.
 template<typename Char, typename Traits, typename ...T>
 inline void format(std::basic_ostream<Char, Traits> &o, const Char *fmt,
                    T &&...args) {
