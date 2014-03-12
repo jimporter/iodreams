@@ -149,7 +149,7 @@ template<typename String, typename T>
 inline auto call_tostring(T &&, const char * = 0) -> typename std::enable_if<
   !has_tostring<T, String, false>::value &&
   !has_tostring<T, String, true >::value,
-  int
+  String
 >::type {
   using unformatted = has_tostring<T, String, false>;
   using formatted = has_tostring<T, String, true>;
