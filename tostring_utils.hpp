@@ -106,8 +106,6 @@ namespace detail {
     !has_tostring<T, String, false>::templated,
     typename has_tostring<T, String, false>::return_type
   >::type {
-    static_assert(has_tostring<T, String, false>::compatible,
-                  "tostring function has incompatible return type");
     return tostring(std::forward<T>(t));
   }
 
@@ -116,8 +114,6 @@ namespace detail {
     has_tostring<T, String, false>::templated,
     typename has_tostring<T, String, false>::return_type
   >::type {
-    static_assert(has_tostring<T, String, false>::compatible,
-                  "tostring function has incompatible return type");
     return tostring<String>(std::forward<T>(t));
   }
 
@@ -127,8 +123,6 @@ namespace detail {
       !has_tostring<T, String, true>::templated,
       typename has_tostring<T, String, true>::return_type
   >::type {
-    static_assert(has_tostring<T, String, true>::compatible,
-                  "tostring function has incompatible return type");
     return tostring(std::forward<T>(t), params);
   }
 
@@ -138,8 +132,6 @@ namespace detail {
       has_tostring<T, String, true>::templated,
       typename has_tostring<T, String, true>::return_type
   >::type {
-    static_assert(has_tostring<T, String, true>::compatible,
-                  "tostring function has incompatible return type");
     return tostring<String>(std::forward<T>(t), params);
   }
 
