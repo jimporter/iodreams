@@ -164,17 +164,22 @@ namespace detail {
   // template parameter pack.
   template<typename Char, typename Traits, typename ...Rest>
   inline void format_one(std::basic_ostream<Char, Traits> &, size_t,
-                         const char *, Rest &&...) {
+                         const std::string &, Rest &&...) {
     assert(false && "format_one() failed somehow!");
   }
 
   template<typename Char, typename Traits, typename T, typename ...Rest>
   inline void format_one(std::basic_ostream<Char, Traits> &o, size_t i,
-                         const char *params, T &&x, Rest &&...args) {
-    if(i == 0)
-      o << call_tostring<std::basic_string<Char, Traits>>(x, params);
-    else
+                         const std::string &params, T &&x, Rest &&...args) {
+    if(i == 0) {
+      using String = std::basic_string<Char, Traits>;
+      // XXX: Maybe use boost::optional here?
+      o << (params.size() ? call_tostring<String>(x, params) :
+                            call_tostring<String>(x));
+    }
+    else {
       format_one(o, i-1, params, args...);
+    }
   }
 }
 
@@ -199,7 +204,7 @@ void format(std::basic_ostream<Char, Traits> &o,
   for(auto ph : fmt.placeholders_) {
     o << *str;
     ++str;
-    detail::format_one(o, ph.index, ph.params.c_str(), args...);
+    detail::format_one(o, ph.index, ph.params, args...);
   }
   o << *str;
 }
