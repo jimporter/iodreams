@@ -8,8 +8,8 @@ namespace io {
 
 template<typename T, typename String, bool Formatted>
 class has_tostring {
-  template<class U> struct always_int { typedef int type; };
-  template<class U> struct identity { typedef U type; };
+  template<typename U> struct always_int { typedef int type; };
+  template<typename U> struct identity { typedef U type; };
 
   template<typename U>
   static constexpr typename always_int<
@@ -53,8 +53,8 @@ public:
 
 template<typename T, typename String>
 class has_tostring<T, String, true> {
-  template<class U> struct always_int { typedef int type; };
-  template<class U> struct identity { typedef U type; };
+  template<typename U> struct always_int { typedef int type; };
+  template<typename U> struct identity { typedef U type; };
 
   template<typename U>
   static constexpr typename always_int<
