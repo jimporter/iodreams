@@ -21,7 +21,7 @@ namespace io {
   T tostring(int******, const char * = 0);
 }
 
-#include "../tostring_utils.hpp"
+#include "iodreams/tostring_utils.hpp"
 
 template<typename Traits, bool Formatted, bool Exists, bool Templated,
          typename StringType, typename InputType, typename ReturnType,
