@@ -30,21 +30,21 @@ class format_string_error : public std::invalid_argument {
   using std::invalid_argument::invalid_argument;
 };
 
+struct format_placeholder {
+  format_placeholder(size_t index) : index(index) {}
+  format_placeholder(size_t index, const std::string &params)
+    : index(index), params(params) {}
+  format_placeholder(size_t index, std::string &&params)
+    : index(index), params(std::move(params)) {}
+
+  size_t index;
+  std::string params;
+};
+
 template<typename T>
 class basic_format_string {
 public:
   typedef T string_type;
-
-  struct placeholder {
-    placeholder(size_t index) : index(index) {}
-    placeholder(size_t index, const std::string &params)
-      : index(index), params(params) {}
-    placeholder(size_t index, std::string &&params)
-      : index(index), params(std::move(params)) {}
-
-    size_t index;
-    std::string params;
-  };
 
   basic_format_string(const T &fmt) {
     enum parse_state {
@@ -136,7 +136,7 @@ public:
           state = START;
           start = i + 1;
         }
-        else if(fmt[i] > 127) {
+        else if(fmt[i] > 127 || fmt[i] <= 0) {
           throw format_string_error(
             "unexpected character in placeholder params"
           );
@@ -154,7 +154,7 @@ public:
   }
 
   std::vector<string_type> strings_;
-  std::vector<placeholder> placeholders_;
+  std::vector<format_placeholder> placeholders_;
 };
 typedef basic_format_string<std::string> format_string;
 typedef basic_format_string<std::wstring> wformat_string;

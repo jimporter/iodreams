@@ -16,3 +16,12 @@ io::format(std::cout,
            "foo", 1, "bar");
 
 ```
+
+## Dependencies
+
+This project currently requires a C++11 compiler. To run the tests, you'll need
+a C++14 compiler with Boost.
+
+## License
+
+This library is licensed under the BSD 3-Clause license.
