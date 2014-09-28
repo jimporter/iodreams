@@ -1,6 +1,9 @@
-CXX := clang++
-CXXFLAGS := -std=c++1y -stdlib=libc++ -Wall -Wextra -pedantic -Werror
-LDFLAGS := -lsupc++
+CXXFLAGS := -std=c++1y
+PREFIX := /usr
+
+-include config.mk
+
+CXXFLAGS += -Wall -Wextra -pedantic -Werror
 
 TESTS := $(patsubst %.cpp,%,$(wildcard test/*.cpp))
 
