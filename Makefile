@@ -4,6 +4,7 @@ PREFIX := /usr
 -include config.mk
 
 TESTS := $(patsubst %.cpp,%,$(wildcard test/*.cpp))
+COMPILATION_TESTS := $(wildcard test/compilation/*.cpp)
 
 # Include all the existing dependency files for automatic #include dependency
 # handling.
@@ -27,7 +28,7 @@ tests: $(TESTS)
 
 .PHONY: test
 test: tests
-	mettle --verbose 2 --color test/test_format_string
+	mettle --verbose 2 --color $(TESTS) "caliber $(COMPILATION_TESTS)"
 
 .PHONY: clean
 clean:

@@ -1,6 +1,6 @@
 # iodreams
 
-`iodreams` is a (currently proof-of-concept) library designed to replace the
+**iodreams** is a (currently proof-of-concept) library designed to replace the
 standard C++ I/O streams library with something that takes better advantage of
 modern C++ (read: this will use the bleedingest-edge C++ humanly possible
 because that's **cool**).
@@ -20,7 +20,9 @@ io::format(std::cout,
 ## Dependencies
 
 This project currently requires a C++11 compiler. To run the tests, you'll need
-a C++14 compiler with Boost.
+both [mettle](https://github.com/jimporter/mettle) and
+[caliber](https://github.com/jimporter/caliber) (which each require a C++14
+compiler).
 
 ## License
 
