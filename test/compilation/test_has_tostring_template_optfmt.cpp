@@ -1,4 +1,4 @@
-/* caliber --name "has_tostring for tostring<T>(arg, fmt=0)" -Iinclude
+/* caliber --name "has_tostring for tostring<T>(arg, fmt=0)" -I../../include
    --std=c++11 */
 #include <string>
 

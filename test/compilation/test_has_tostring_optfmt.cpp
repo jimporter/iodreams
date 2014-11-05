@@ -1,4 +1,5 @@
-// caliber --name "has_tostring for tostring(arg, fmt=0)" -Iinclude --std=c++11
+/* caliber --name "has_tostring for tostring(arg, fmt=0)" -I../../include
+   --std=c++11 */
 #include <string>
 
 namespace io {
