@@ -18,13 +18,9 @@ ALL_TESTS := $(TESTS) "caliber $(COMPILATION_TESTS)"
 # Build .o files and the corresponding .d (dependency) files. For more info, see
 # <http://scottmcpeak.com/autodepend/autodepend.html>.
 %.o: %.cpp
-	$(CXX) $(CXXFLAGS) -Iinclude -c $< -o $@
-	$(eval TEMP := $(shell mktemp $(TMPDIR)/iodreams-XXXXXX))
-	$(CXX) $(CXXFLAGS) -MM -Iinclude $< > $(TEMP)
-	@sed -e 's|.*:|$*.o:|' < $(TEMP) > $*.d
-	@sed -e 's/.*://' -e 's/\\$$//' < $(TEMP) | fmt -1 | \
+	$(CXX) $(CXXFLAGS) -Iinclude -MMD -MF $*.d -c $< -o $@
+	@sed -e 's/.*://' -e 's/\\$$//' < $*.d | fmt -1 | \
 	  sed -e 's/^ *//' -e 's/$$/:/' >> $*.d
-	@rm -f $(TEMP)
 
 $(TESTS): %: %.o
 	$(CXX) $(CXXFLAGS) $< $(LDFLAGS) -lmettle -o $@
@@ -33,7 +29,7 @@ tests: $(TESTS)
 
 .PHONY: test
 test: tests
-	mettle --output=verbose --color $(ALL_TESTS)
+	mettle --color --output=verbose $(ALL_TESTS)
 
 .PHONY: clean
 clean:
